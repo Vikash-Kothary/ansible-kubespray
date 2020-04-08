@@ -1,32 +1,30 @@
-#!/usr/bin/make
-#@ Kubespray
+#/bin/make
 
-.DEFAULT_GOAL := help-kubespray
-SHELL := /bin/bash
+SHELL ?= /bin/bash
+KUBESPRAY_NAME ?= "Ansible Kubespray"
+KUBESPRAY_VERSION ?= "v0.1.0"
+KUBESPRAY_DESCRIPTION ?= "Production Ready Kubernetes Cluster."
+KUBESPRAY_ROOT ?= ${PWD}
+CLUSTER ?= local
 
-CONTEXT_KUBESPRAY := $(or $(CONTEXT_KUBESPRAY),${PWD})
-CLUSTER_NAME := $(or $(CONTEXT_KUBESPRAY),local)
-
--include ${CONTEXT_KUBESPRAY}/.env
+-include .env
 export
 
-#@ Commands:
 %: %-kubespray
 	@true
 
-#- Check if required parameter has been set
+.PHONY: check-<ENV> #: Check if required parameter has been set
 check-%:
 	@test -n "${$(*)}"
 
-.PHONY: help-kubespray
-#- Show all commands.
+.DEFAULT_GOAL := help-kubespray
+.PHONY: help-kubespray #: List all commands
 help-kubespray:
-	@cd ${CONTEXT_KUBESPRAY} && \
-	awk '{ if (match(lastLine, /^#- (.*)/)) printf "- %s: %s\n", substr($$1, 0, index($$1, ":")-1), substr(lastLine, RSTART + 3, RLENGTH); else if (match($$0, /^[a-zA-Z\-\_0-9]+:/)) printf "- %s:\n", substr($$1, 0, index($$1, ":")-1); else if (match($$0, /^#@ (.*)/)) printf "%s\n", substr($$0, RSTART + 3, RLENGTH); } { lastLine = $$0 }' $(MAKEFILE_LIST)
+	@cd ${KUBESPRAY_ROOT} && awk 'BEGIN {FS = " ?#?: "; print ""${KUBESPRAY_NAME}" "${KUBESPRAY_VERSION}"\n"${KUBESPRAY_DESCRIPTION}"\n\nUsage: make \033[36m<command>\033[0m\n\nCommands:"} /^.PHONY: ?[a-zA-Z_-]/ { printf "  \033[36m%-10s\033[0m %s\n", $$2, $$3 }' $(MAKEFILE_LIST)
 
 .PHONY: init-kubespray
 init-kubespray:
-	@cd ${CONTEXT_KUBESPRAY} && \
+	@cd ${KUBESPRAY_ROOT} && \
 	if [ ! -d .venv ]; then \
 		python3 -m venv .venv; \
 		.venv/bin/pip3 install --upgrade pip; \
@@ -34,29 +32,31 @@ init-kubespray:
 	fi
 
 .PHONY: new-kubespray
-new-kubespray: check-CLUSTER_NAME check-CLUSTER_IPS init-kubespray
-	@cd ${CONTEXT_KUBESPRAY} && \
+new-kubespray: check-CLUSTER init-kubespray
+	@cd ${KUBESPRAY_ROOT} && \
 	. .venv/bin/activate && \
-	cp -rfp inventory/sample inventory/${CLUSTER_NAME} && \
-	CONFIG_FILE=inventory/${CLUSTER_NAME}/hosts.yml python3 contrib/inventory_builder/inventory.py ${CLUSTER_IPS[@]}
+	cp -rfp inventory/sample inventory/${CLUSTER} && \
+	CONFIG_FILE=inventory/${CLUSTER}/hosts.yml python3 contrib/inventory_builder/inventory.py 127.0.0.1
 
 .PHONY: run-kubespray
-run-kubespray: check-CLUSTER_NAME init-kubespray
-	@cd ${CONTEXT_KUBESPRAY} && \
+run-kubespray: check-CLUSTER init-kubespray
+	@cd ${KUBESPRAY_ROOT} && \
 	. .venv/bin/activate && \
-	ansible-playbook -i inventory/${CLUSTER_NAME}/hosts.yml tasks/cluster.yml
-
-open-kubespray: check-CLUSTER_HOST check-CLUSTER_PORT
-	@open http://${CLUSTER_HOST}:${CLUSTER_PORT}/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/
+	ansible-playbook -i `find inventory/${CLUSTER} -type f -name *hosts*` tasks/cluster.yml
 
 .PHONY: mitogen-kubespray
-mitogen-kubespray: init-kubespray
-	@cd ${CONTEXT_KUBESPRAY} && \
+mitogen-kubespray: check-CLUSTER init-kubespray
+	@cd ${KUBESPRAY_ROOT} && \
 	. .venv/bin/activate && \
-	ansible-playbook -c local tasks/mitogen.yaml -vv
+	ansible-playbook -i `find inventory/${CLUSTER} -type f -name *hosts*` tasks/mitogen.yaml
 
 .PHONY: clean-kubespray
 clean-kubespray:
-	@cd ${CONTEXT_KUBESPRAY} && \
+	@cd ${KUBESPRAY_ROOT} && \
 	rm -rf dist/ && \
 	rm *.retry
+
+.PHONY: open-kubespray
+open-kubespray: check-CLUSTER_HOST check-CLUSTER_PORT
+	@open http://${CLUSTER_HOST}:${CLUSTER_PORT}/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/
+
