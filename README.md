@@ -144,7 +144,7 @@ vagrant up
 - **Debian** Bookworm, Bullseye
 - **Ubuntu** 20.04, 22.04, 24.04
 - **CentOS/RHEL** [8, 9](docs/operating_systems/centos.md#centos-8)
-- **Fedora** 37, 38
+- **Fedora** 39, 40
 - **Fedora CoreOS** (see [fcos Note](docs/operating_systems/fcos.md))
 - **openSUSE** Leap 15.x/Tumbleweed
 - **Oracle Linux** [8, 9](docs/operating_systems/centos.md#centos-8)
@@ -160,15 +160,15 @@ Note: Upstart/SysV init based OS types are not supported.
 ## Supported Components
 
 - Core
-  - [kubernetes](https://github.com/kubernetes/kubernetes) v1.30.4
-  - [etcd](https://github.com/etcd-io/etcd) v3.5.12
+  - [kubernetes](https://github.com/kubernetes/kubernetes) v1.31.1
+  - [etcd](https://github.com/etcd-io/etcd) v3.5.16
   - [docker](https://www.docker.com/) v26.1
-  - [containerd](https://containerd.io/) v1.7.21
-  - [cri-o](http://cri-o.io/) v1.30.3 (experimental: see [CRI-O Note](docs/CRI/cri-o.md). Only on fedora, ubuntu and centos based OS)
+  - [containerd](https://containerd.io/) v1.7.22
+  - [cri-o](http://cri-o.io/) v1.31.0 (experimental: see [CRI-O Note](docs/CRI/cri-o.md). Only on fedora, ubuntu and centos based OS)
 - Network Plugin
   - [cni-plugins](https://github.com/containernetworking/plugins) v1.2.0
   - [calico](https://github.com/projectcalico/calico) v3.28.1
-  - [cilium](https://github.com/cilium/cilium) v1.15.4
+  - [cilium](https://github.com/cilium/cilium) v1.15.9
   - [flannel](https://github.com/flannel-io/flannel) v0.22.0
   - [kube-ovn](https://github.com/alauda/kube-ovn) v1.12.21
   - [kube-router](https://github.com/cloudnativelabs/kube-router) v2.0.0
@@ -201,7 +201,7 @@ Note: Upstart/SysV init based OS types are not supported.
 
 ## Requirements
 
-- **Minimum required version of Kubernetes is v1.28**
+- **Minimum required version of Kubernetes is v1.29**
 - **Ansible v2.14+, Jinja 2.11+ and python-netaddr is installed on the machine that will run Ansible commands**
 - The target servers must have **access to the Internet** in order to pull docker images. Otherwise, additional configuration is required (See [Offline Environment](docs/operations/offline-environment.md))
 - The target servers are configured to allow **IPv4 forwarding**.

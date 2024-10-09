@@ -28,8 +28,10 @@ SUPPORTED_OS = {
   "almalinux8-bento"    => {box: "bento/almalinux-8",          user: "vagrant"},
   "rockylinux8"         => {box: "rockylinux/8",               user: "vagrant"},
   "rockylinux9"         => {box: "rockylinux/9",               user: "vagrant"},
-  "fedora37"            => {box: "fedora/37-cloud-base",       user: "vagrant"},
-  "fedora38"            => {box: "fedora/38-cloud-base",       user: "vagrant"},
+  "fedora39"            => {box: "fedora/39-cloud-base",       user: "vagrant"},
+  "fedora40"            => {box: "fedora/40-cloud-base",       user: "vagrant"},
+  "fedora39-arm64"      => {box: "bento/fedora-39-arm64",      user: "vagrant"},
+  "fedora40-arm64"      => {box: "bento/fedora-40",            user: "vagrant"},
   "opensuse"            => {box: "opensuse/Leap-15.4.x86_64",  user: "vagrant"},
   "opensuse-tumbleweed" => {box: "opensuse/Tumbleweed.x86_64", user: "vagrant"},
   "oraclelinux"         => {box: "generic/oracle7",            user: "vagrant"},
@@ -224,14 +226,15 @@ Vagrant.configure("2") do |config|
         node.vm.provision "shell", inline: "rm -f /etc/modprobe.d/local.conf"
         node.vm.provision "shell", inline: "sed -i '/net.ipv6.conf.all.disable_ipv6/d' /etc/sysctl.d/99-sysctl.conf /etc/sysctl.conf"
       end
-      # Hack for fedora37/38 to get the IP address of the second interface
-      if ["fedora37", "fedora38"].include? $os
+      # Hack for fedora39/40 to get the IP address of the second interface
+      if ["fedora39", "fedora40", "fedora39-arm64", "fedora40-arm64"].include? $os
         config.vm.provision "shell", inline: <<-SHELL
-          nmcli conn modify 'Wired connection 2' ipv4.addresses $(cat /etc/sysconfig/network-scripts/ifcfg-eth1 | grep IPADDR | cut -d "=" -f2)
+          nmcli conn modify 'Wired connection 2' ipv4.addresses $(cat /etc/sysconfig/network-scripts/ifcfg-eth1 | grep IPADDR | cut -d "=" -f2)/24
           nmcli conn modify 'Wired connection 2' ipv4.method manual
           service NetworkManager restart
         SHELL
       end
+
 
       # Rockylinux boxes needs UEFI
       if ["rockylinux8", "rockylinux9"].include? $os
